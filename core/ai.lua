@@ -125,8 +125,16 @@ function M.start(modules)
                     Fen = board.FEN.Value
 
                     if isLocalPlayersTurn() and Fen and state.aiRunning then 
-                        move = GetBestMove(nil, Fen, 5000)
-                        if move then
+                        local success, result = pcall(function()
+                            local response = game:GetService("HttpService"):GetAsync("http://localhost:3000/api/solve?fen=" .. game:GetService("HttpService"):UrlEncode(Fen))
+                            if #response <= 4 then
+                                return response
+                            end
+                            return nil
+                        end)
+
+                        if success and result then
+                            move = result
                             task.wait(randWaitFromGameType)
                             PlayMove(move)
 
