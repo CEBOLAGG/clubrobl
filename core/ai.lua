@@ -12,6 +12,7 @@ function M.start(modules)
     local Players = game:GetService("Players")
     local localPlayer = Players.LocalPlayer
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local HttpService = game:GetService("HttpService")
     local Sunfish = localPlayer:WaitForChild("PlayerScripts").AI:WaitForChild("Sunfish")
     local ChessLocalUI = localPlayer:WaitForChild("PlayerScripts"):WaitForChild("ChessLocalUI")
 
@@ -126,11 +127,18 @@ function M.start(modules)
 
                     if isLocalPlayersTurn() and Fen and state.aiRunning then 
                         local success, result = pcall(function()
-                            local response = game:GetService("HttpService"):GetAsync("http://localhost:3000/api/solve?fen=" .. game:GetService("HttpService"):UrlEncode(Fen))
-                            if #response <= 4 then
-                                return response
+                            local res = request({
+                                Url = "http://localhost:3000/api/solve?fen=" .. HttpService:UrlEncode(Fen),
+                                Method = "GET"
+                            })
+                            local responseBody = res.Body
+                            
+                            -- Ensure result is valid
+                            if string.len(responseBody) > 4 then
+                                error(responseBody)
                             end
-                            return nil
+                            
+                            return responseBody
                         end)
 
                         if success and result then
